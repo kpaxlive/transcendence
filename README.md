@@ -5,6 +5,19 @@ This project is about creating a website that users can play pong each other. On
 
 
 ***
+### We are using:
+
+- Docker - Docker-compose
+- Django - Channels-Daphne - ASGI application
+- Websockets - wss/
+- Html -Javascript -Boostrap
+- Nginx - SSL
+- Postgresql
+- Redis
+
+
+
+***
 ### Screenshots of Website
 ![pong1](/screenshots/pong1.png)
 ![pong2](/screenshots/pong2.png)
