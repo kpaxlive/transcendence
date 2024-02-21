@@ -1,9 +1,12 @@
-FROM python:3.8.5-alpine
+FROM python:3.12.1
 
 RUN pip install --upgrade pip
 
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
+
+EXPOSE 443
+EXPOSE 80
 
 COPY ./django_project /app
 

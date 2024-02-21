@@ -3,22 +3,74 @@ version: '3.7'
 services:
   django_gunicorn:
     volumes:
-      - static:/static
+      - ./django_project/static:/static
     env_file:
       - .env
     build:
       context: .
     ports:
       - "8000:8000"
+    networks:
+       - pongnet
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z -v -w30 db_postgres 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   nginx:
     build: ./nginx
     volumes:
-      - static:/static
+      - ./django_project/static:/static
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - django_gunicorn
+    networks:
+       - pongnet
 
-volumes:
-  static:
+  db_postgres:
+    image: postgres:alpine3.18
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - ./.postgres_data:/var/lib/postgresql/data
+    networks:
+       - pongnet
 
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    env_file:
+      - .env
+    volumes:
+      - ./.redisdata:/data
+    networks:
+       - pongnet
+
+  pihole:
+    image: pihole/pihole
+    environment:
+      - ServerIP=192.168.1.142  # Set the IP address of your server
+      - DNS1=8.8.8.8  # Set your preferred DNS resolver here
+      - DNS2=8.8.4.4  # Set another DNS resolver here if desired
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    depends_on:
+      - db_postgres
+      - redis
+    networks:
+       - pongnet
+
+networks:
+  pongnet:
+    driver: bridge
